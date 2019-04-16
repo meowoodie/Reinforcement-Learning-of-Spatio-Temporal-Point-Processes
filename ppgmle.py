@@ -4,7 +4,7 @@ import utils
 import numpy as np
 import tensorflow as tf
 
-from tfgen import SpatialTemporalHawkes, MarkedSpatialTemporalLSTM
+from tfgen import SpatialTemporalHawkes
 
 class MLE_Hawkes_Generator(object):
     """

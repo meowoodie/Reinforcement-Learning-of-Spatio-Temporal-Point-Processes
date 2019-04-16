@@ -30,14 +30,14 @@ if __name__ == "__main__":
 	da     = utils.DataAdapter(init_data=data)
 	mu     = params['mu']
 	beta   = params['beta']
-	kernel = GaussianMixtureDiffusionKernel(
-		n_comp=5, layers=[5], C=1., beta=beta, 
-		SIGMA_SHIFT=.05, SIGMA_SCALE=.2, MU_SCALE=.01,
-		Wss=params['Wss'], bss=params['bss'], Wphis=params['Wphis'])
+	# kernel = GaussianMixtureDiffusionKernel(
+	# 	n_comp=5, layers=[5], C=1., beta=beta, 
+	# 	SIGMA_SHIFT=.05, SIGMA_SCALE=.2, MU_SCALE=.01,
+	# 	Wss=params['Wss'], bss=params['bss'], Wphis=params['Wphis'])
 	# kernel = GaussianMixtureDiffusionKernel(
 	# 	n_comp=20, layers=[5], C=1., beta=.8, 
 	# 	SIGMA_SHIFT=.05, SIGMA_SCALE=.3, MU_SCALE=.03)
-	# kernel = StdDiffusionKernel(C=1., beta=.15, sigma_x=.15, sigma_y=.15)
+	kernel = StdDiffusionKernel(C=1., beta=.15, sigma_x=.15, sigma_y=.15)
 	lam    = HawkesLam(mu, kernel, maximum=1e+3)
 
 	# print(da.normalize(data)[0])
@@ -45,11 +45,11 @@ if __name__ == "__main__":
 	print(beta)
 
 	utils.spatial_intensity_on_map(
-		"results/intensity_map.html", da, lam, data, seq_ind=10, t=5., 
-		# crime range
+		"results/intensity_map.html", da, lam, data, seq_ind=0, t=7., 
+		# # crime range
 		# xlim=[33.70, 33.87],
 		# ylim=[-84.50, -84.30],
-		# # earthquake range
+		# earthquake range
 		xlim=[25.692, 49.687],
 		ylim=[-129.851, -111.094],
 		ngrid=200)

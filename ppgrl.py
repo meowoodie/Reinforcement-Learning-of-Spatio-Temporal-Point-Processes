@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from tfgen import SpatialTemporalHawkes, MarkedSpatialTemporalLSTM
+from tfgen import SpatialTemporalHawkes
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
