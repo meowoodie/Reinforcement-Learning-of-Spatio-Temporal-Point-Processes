@@ -31,16 +31,16 @@ class RL_Hawkes_Generator(object):
         # Hawkes process generator
         self.hawkes     = SpatialTemporalHawkes(T, S, layers=layers, n_comp=n_comp, C=C, maximum=1e+3, verbose=False)
         # input tensors: expert sequences (time, location)
-        self.input_expert_seqs    = tf.placeholder(tf.float32, [batch_size, None, 3])
-        self.input_learner_seqs   = tf.placeholder(tf.float32, [batch_size, None, 3])
+        self.input_expert_seqs   = tf.placeholder(tf.float32, [batch_size, None, 3])
+        self.input_learner_seqs  = tf.placeholder(tf.float32, [batch_size, None, 3])
         # TODO: make esp decay exponentially
         # coaching
-        self.coached_learner_seqs = self._coaching(self.input_learner_seqs, self.input_expert_seqs, eps=eps)
-        self.learner_seqs_loglik  = self._log_likelihood(learner_seqs=self.coached_learner_seqs, keep_latest_k=keep_latest_k)
+        # self.coached_learner_seqs = self._coaching(self.input_learner_seqs, self.input_expert_seqs, eps=eps)
+        self.learner_seqs_loglik = self._log_likelihood(learner_seqs=self.input_learner_seqs, keep_latest_k=keep_latest_k)
         # build policy optimizer
         self._policy_optimizer(
             expert_seqs=self.input_expert_seqs, 
-            learner_seqs=self.coached_learner_seqs,
+            learner_seqs=self.input_learner_seqs,
             learner_seqs_loglik=self.learner_seqs_loglik, 
             lr=lr)
     
@@ -83,10 +83,10 @@ class RL_Hawkes_Generator(object):
 
         # cost and optimizer
         print("[%s] building optimizer." % arrow.now(), file=sys.stderr)
-        self.cost      = tf.reduce_sum(tf.multiply(reward, concat_learner_seq_loglik), axis=0) / self.batch_size
-        # self.cost      = tf.reduce_sum( \
-        #                  tf.reduce_sum(tf.reshape(reward, [self.batch_size, tf.shape(learner_seqs)[1]]), axis=1) * \
-        #                  tf.reduce_sum(tf.reshape(concat_learner_seq_loglik, [self.batch_size, tf.shape(learner_seqs)[1]]), axis=1))  / self.batch_size
+        # self.cost      = tf.reduce_sum(tf.multiply(reward, concat_learner_seq_loglik), axis=0) / self.batch_size
+        self.cost      = tf.reduce_sum( \
+                         tf.reduce_sum(tf.reshape(reward, [self.batch_size, tf.shape(learner_seqs)[1]]), axis=1) * \
+                         tf.reduce_sum(tf.reshape(concat_learner_seq_loglik, [self.batch_size, tf.shape(learner_seqs)[1]]), axis=1))  / self.batch_size
         # Adam optimizer
         global_step    = tf.Variable(0, trainable=False)
         learning_rate  = tf.train.exponential_decay(lr, global_step, decay_steps=100, decay_rate=0.99, staircase=True)
@@ -169,6 +169,20 @@ class RL_Hawkes_Generator(object):
         expert_learner_mat  = tf.exp(-expert_learner_mat / kernel_bandwidth)
         return learner_learner_mat, expert_learner_mat
 
+    def mmd(self, sess, expert_seqs, learner_seqs):
+        """
+        """
+        batch_size         = expert_seqs.shape[1]
+        # convert to tensors
+        expert_seqs        = tf.constant(expert_seqs, dtype=tf.float32)
+        learner_seqs       = tf.constant(learner_seqs, dtype=tf.float32)
+        # concatenate batches in the sequences
+        concat_expert_seq  = self.__concatenate_batch(expert_seqs)  # [batch_size * expert_seq_len, data_dim]
+        concat_learner_seq = self.__concatenate_batch(learner_seqs) # [batch_size * learner_seq_len, data_dim]
+        # calculate the reward (mmd)
+        reward             = tf.reduce_sum(self._reward(concat_expert_seq, concat_learner_seq)) / batch_size
+        return sess.run(reward)
+
     def train(self, sess, 
             epoches,               # number of epoches (how many times is the entire dataset going to be trained)
             expert_seqs,           # [n, seq_len, 3]
@@ -188,11 +202,9 @@ class RL_Hawkes_Generator(object):
         n_data    = expert_seqs.shape[0]
         # - number of batches
         n_batches = int(n_data / self.batch_size)
-        
-        # if trainplot:
-        #     ppim = utils.PointProcessDistributionMeter(self.T, self.S, self.batch_size)
 
         # training over epoches
+        all_train_cost = []
         for epoch in range(epoches):
             # shuffle indices of the training samples
             shuffled_ids = np.arange(n_data)
@@ -218,17 +230,16 @@ class RL_Hawkes_Generator(object):
                 print("[%s] batch training cost: %.2f." % (arrow.now(), train_cost), file=sys.stderr)
                 # record cost for each batch
                 avg_train_cost.append(train_cost)
-
-                # if trainplot:
-                #     # update distribution plot
-                #     ppim.update_time_distribution(batch_train_learner[:, : , 0], batch_train_expert[:, :, 0])
-                #     ppim.update_location_distribution(batch_train_learner[:, : , 1:], batch_train_expert[:, :, 1:])
+                all_train_cost.append(train_cost)
 
             # training log output
             avg_train_cost = np.mean(avg_train_cost)
             print('[%s] Epoch %d (n_train_batches=%d, batch_size=%d)' % \
                 (arrow.now(), epoch, n_batches, self.batch_size), file=sys.stderr)
             print('[%s] Training cost:\t%f' % (arrow.now(), avg_train_cost), file=sys.stderr)
+        
+        # save all training cost into numpy file.
+        np.savetxt("results/robbery_rl_train_cost.txt", all_train_cost, delimiter=",")
 
 if __name__ == "__main__":
 	# Unittest example
@@ -248,7 +259,7 @@ if __name__ == "__main__":
     with tf.Session() as sess:
         # model configuration
         batch_size = 10
-        epoches    = 5
+        epoches    = 30
         lr         = 1e-3
         T          = [0., 10.]
         S          = [[-1., 1.], [-1., 1.]]

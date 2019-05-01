@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 from tfgen import SpatialTemporalHawkes
+from ppgrl import RL_Hawkes_Generator
 
 class MLE_Hawkes_Generator(object):
     """
@@ -76,6 +77,7 @@ class MLE_Hawkes_Generator(object):
         n_batches = int(n_data / batch_size)
 
         # training over epoches
+        all_train_cost = []
         for epoch in range(epoches):
             # shuffle indices of the training samples
             shuffled_ids = np.arange(n_data)
@@ -96,19 +98,23 @@ class MLE_Hawkes_Generator(object):
                 print("[%s] batch training cost: %.2f." % (arrow.now(), train_cost), file=sys.stderr)
                 # record cost for each batch
                 avg_train_cost.append(train_cost)
+                all_train_cost.append(train_cost)
 
             # training log output
             avg_train_cost = np.mean(avg_train_cost)
             print('[%s] Epoch %d (n_train_batches=%d, batch_size=%d)' % (arrow.now(), epoch, n_batches, batch_size), file=sys.stderr)
             print('[%s] Training cost:\t%f' % (arrow.now(), avg_train_cost), file=sys.stderr)
+        
+        # save all training cost into numpy file.
+        np.savetxt("results/robbery_mle_train_cost.txt", all_train_cost, delimiter=",")
 
             
 
 if __name__ == "__main__":
     # Unittest example
 
-    # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/apd.robbery.permonth.npy')
-    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
+    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/apd.robbery.permonth.npy')
+    # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
     da   = utils.DataAdapter(init_data=data)
     seqs = da.normalize(data)
     seqs = seqs[:, 1:, :] # remove the first element in each seqs, since t = 0
@@ -120,15 +126,26 @@ if __name__ == "__main__":
         S          = [[-1., 1.], [-1., 1.]]
         T          = [0., 10.]
         batch_size = 10
-        epoches    = 10
+        epoches    = 1 # 30
         layers     = [5]
+        n_comp     = 5
 
         ppg = MLE_Hawkes_Generator(
-            T=T, S=S, layers=layers, n_comp=5,
+            T=T, S=S, layers=layers, n_comp=n_comp,
             batch_size=batch_size, data_dim=3, 
             keep_latest_k=None, lr=1e-1, reg_scale=0.)
         
         ppg.train(sess, epoches, seqs)
 
-        ppg.hawkes.save_params_npy(sess, 
-            path="../Spatio-Temporal-Point-Process-Simulator/data/earthquake_mle_gaussian_mixture_params.npz")
+        # ppg.hawkes.save_params_npy(sess, 
+        #     path="../Spatio-Temporal-Point-Process-Simulator/data/earthquake_mle_gaussian_mixture_params.npz")
+
+        # generate samples and test mmd metric
+        test_size    = 10
+        learner_seqs = ppg.hawkes.sampling(sess, test_size)
+        expert_seqs  = seqs[:test_size, :, :]
+
+        rlgen = RL_Hawkes_Generator(T, S, layers, n_comp, test_size)
+        mmd   = rlgen.mmd(sess, expert_seqs, learner_seqs)
+        print(mmd)
+        
