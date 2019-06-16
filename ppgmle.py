@@ -114,11 +114,11 @@ class MLE_Hawkes_Generator(object):
 if __name__ == "__main__":
     # Unittest example
 
-    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/apd.robbery.permonth.npy')
+    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/ambulance.perday.npy')
     # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
     da   = utils.DataAdapter(init_data=data)
     seqs = da.normalize(data)
-    seqs = seqs[:, 1:, :] # remove the first element in each seqs, since t = 0
+    seqs = seqs[:320, 1:51, :] # remove the first element in each seqs, since t = 0
     print(da)
     print(seqs.shape)
 
@@ -126,21 +126,21 @@ if __name__ == "__main__":
     with tf.Session() as sess:
         S          = [[-1., 1.], [-1., 1.]]
         T          = [0., 10.]
-        batch_size = 10
-        epoches    = 20
+        batch_size = 32
+        epoches    = 10
         layers     = [5]
         n_comp     = 5
 
-        # ppg = MLE_Hawkes_Generator(
-        #     T=T, S=S, layers=layers, n_comp=n_comp,
-        #     batch_size=batch_size, data_dim=3, 
-        #     keep_latest_k=None, lr=1e-1, reg_scale=0.)
-        # ppg.train(sess, epoches, seqs)
-        # ppg.hawkes.save_params_npy(sess, 
-        #     path="../Spatio-Temporal-Point-Process-Simulator/data/earthquake_mle_gaussian_mixture_params.npz")
+        ppg = MLE_Hawkes_Generator(
+            T=T, S=S, layers=layers, n_comp=n_comp,
+            batch_size=batch_size, data_dim=3, 
+            keep_latest_k=None, lr=1e-1, reg_scale=0.)
+        ppg.train(sess, epoches, seqs)
+        ppg.hawkes.save_params_npy(sess, 
+            path="../Spatio-Temporal-Point-Process-Simulator/data/ambulance_mle_gaussian_mixture_params.npz")
 
         # generate samples and test mmd metric
-        test_size = 20
+        # test_size = 20
         # params    = np.load('../Spatio-Temporal-Point-Process-Simulator/data/earthquake_mle_gaussian_mixture_params.npz')
         # mu        = .1 # params['mu']
         # beta      = 1. # params['beta']
@@ -155,21 +155,21 @@ if __name__ == "__main__":
         # pp     = SpatialTemporalPointProcess(lam)
         # learner_seqs = pp.generate(T, S, batch_size=test_size, min_n_points=5, verbose=True)[0]
 
-        # uniform samples
-        learner_seqs = []
-        for i in range(test_size):
-            N      = 30
-            _S     = [T] + S
-            points = [ np.random.uniform(_S[i][0], _S[i][1], N) for i in range(len(_S)) ]
-            points = np.array(points).transpose()
-            points = points[points[:, 0].argsort()].tolist()
-            learner_seqs.append(points)
+        # # uniform samples
+        # learner_seqs = []
+        # for i in range(test_size):
+        #     N      = 30
+        #     _S     = [T] + S
+        #     points = [ np.random.uniform(_S[i][0], _S[i][1], N) for i in range(len(_S)) ]
+        #     points = np.array(points).transpose()
+        #     points = points[points[:, 0].argsort()].tolist()
+        #     learner_seqs.append(points)
 
-        learner_seqs = np.array(learner_seqs)
-        expert_seqs  = seqs[:test_size, :, :]
-        print(learner_seqs.shape)
-        # calculate mmd
-        rlgen = RL_Hawkes_Generator(T, S, layers, n_comp, test_size)
-        mmd   = rlgen.mmd(sess, expert_seqs, learner_seqs)
-        print(mmd)
+        # learner_seqs = np.array(learner_seqs)
+        # expert_seqs  = seqs[:test_size, :, :]
+        # print(learner_seqs.shape)
+        # # calculate mmd
+        # rlgen = RL_Hawkes_Generator(T, S, layers, n_comp, test_size)
+        # mmd   = rlgen.mmd(sess, expert_seqs, learner_seqs)
+        # print(mmd)
         
