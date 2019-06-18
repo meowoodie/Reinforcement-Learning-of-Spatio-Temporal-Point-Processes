@@ -49,7 +49,7 @@ class DataAdapter():
     S:         data spatial range. eg. [[-1., 1.], [-1., 1.]]
     T:         data temporal range.  eg. [0., 10.]
     """
-    def __init__(self, init_data, S=[[-1, 1], [-1, 1]], T=[0., 10.]):
+    def __init__(self, init_data, S=[[-1, 1], [-1, 1]], T=[0., 10.], xlim=None, ylim=None):
         self.data = init_data
         self.T    = T
         self.S    = S
@@ -57,8 +57,8 @@ class DataAdapter():
         mask      = np.nonzero(init_data[:, :, 0])
         x_nonzero = init_data[:, :, 1][mask]
         y_nonzero = init_data[:, :, 2][mask]
-        self.xlim = [ x_nonzero.min(), x_nonzero.max() ]
-        self.ylim = [ y_nonzero.min(), y_nonzero.max() ]
+        self.xlim = [ x_nonzero.min(), x_nonzero.max() ] if xlim is None else xlim
+        self.ylim = [ y_nonzero.min(), y_nonzero.max() ] if ylim is None else ylim
         print(self.tlim)
         print(self.xlim)
         print(self.ylim)
@@ -157,7 +157,7 @@ def spatial_intensity_on_map(
             # append the intensity value to the list
             s = da.normalize_location((x_left_origin + x_right_origin) / 2., (y_top + y_bottom) / 2.)
             v = lam.value(t, sub_seq_t, s, sub_seq_s)
-            lam_dict[str(_id)] = np.log(v)
+            lam_dict[str(_id)] = v # np.log(v)
             _id += 1
             # append polygon to the list
             polygons.append(Polygon(
@@ -170,11 +170,11 @@ def spatial_intensity_on_map(
     # convert polygons to geopandas object
     geo_df = geopandas.GeoSeries(polygons) 
     # init map
-    # _map   = folium.Map(location=[sum(xlim)/2., sum(ylim)/2.], zoom_start=12, zoom_control=True)
-    _map   = folium.Map(location=[sum(xlim)/2., sum(ylim)/2.], zoom_start=6, zoom_control=True, tiles='Stamen Terrain')
+    _map   = folium.Map(location=[sum(xlim)/2., sum(ylim)/2.], zoom_start=11, zoom_control=True)
+    # _map   = folium.Map(location=[sum(xlim)/2., sum(ylim)/2.], zoom_start=6, zoom_control=True, tiles='Stamen Terrain')
     # plot polygons on the map
     print(min(lam_dict.values()), max(lam_dict.values()))
-    lam_cm = branca.colormap.linear.YlOrRd_09.scale(np.log(3), np.log(150))       # colorbar for intensity values
+    lam_cm = branca.colormap.linear.YlOrRd_09.scale(10, 5000) # (np.log(3), np.log(150))       # colorbar for intensity values
     poi_cm = branca.colormap.linear.PuBu_09.scale(min(sub_seq_t), max(sub_seq_t)) # colorbar for lasting time of points
     folium.GeoJson(
         data = geo_df.to_json(),

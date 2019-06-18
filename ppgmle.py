@@ -113,19 +113,19 @@ class MLE_Hawkes_Generator(object):
 
 if __name__ == "__main__":
     # Unittest example
-
-    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/ambulance.perday.npy')
+    S    = [[-1., 1.], [-1., 1.]]
+    T    = [0., 10.]
+    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
+    data = data[:320, 1:51, :] # remove the first element in each seqs, since t = 0
+    da   = utils.DataAdapter(init_data=data, S, T)
     # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
-    da   = utils.DataAdapter(init_data=data)
+    # da   = utils.DataAdapter(init_data=data)
     seqs = da.normalize(data)
-    seqs = seqs[:320, 1:51, :] # remove the first element in each seqs, since t = 0
     print(da)
     print(seqs.shape)
 
     # training model
     with tf.Session() as sess:
-        S          = [[-1., 1.], [-1., 1.]]
-        T          = [0., 10.]
         batch_size = 32
         epoches    = 10
         layers     = [5]
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             keep_latest_k=None, lr=1e-1, reg_scale=0.)
         ppg.train(sess, epoches, seqs)
         ppg.hawkes.save_params_npy(sess, 
-            path="../Spatio-Temporal-Point-Process-Simulator/data/ambulance_mle_gaussian_mixture_params.npz")
+            path="../Spatio-Temporal-Point-Process-Simulator/data/rescale_ambulance_mle_gaussian_mixture_params.npz")
 
         # generate samples and test mmd metric
         # test_size = 20
