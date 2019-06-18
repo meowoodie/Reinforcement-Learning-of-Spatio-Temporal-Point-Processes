@@ -157,7 +157,7 @@ def spatial_intensity_on_map(
             # append the intensity value to the list
             s = da.normalize_location((x_left_origin + x_right_origin) / 2., (y_top + y_bottom) / 2.)
             v = lam.value(t, sub_seq_t, s, sub_seq_s)
-            lam_dict[str(_id)] = v # np.log(v)
+            lam_dict[str(_id)] = np.log(v)
             _id += 1
             # append polygon to the list
             polygons.append(Polygon(
@@ -174,7 +174,7 @@ def spatial_intensity_on_map(
     # _map   = folium.Map(location=[sum(xlim)/2., sum(ylim)/2.], zoom_start=6, zoom_control=True, tiles='Stamen Terrain')
     # plot polygons on the map
     print(min(lam_dict.values()), max(lam_dict.values()))
-    lam_cm = branca.colormap.linear.YlOrRd_09.scale(10, 5000) # (np.log(3), np.log(150))       # colorbar for intensity values
+    lam_cm = branca.colormap.linear.YlOrRd_09.scale(np.log(5), np.log(5000)) # scale(10, 5000) # colorbar for intensity values
     poi_cm = branca.colormap.linear.PuBu_09.scale(min(sub_seq_t), max(sub_seq_t)) # colorbar for lasting time of points
     folium.GeoJson(
         data = geo_df.to_json(),

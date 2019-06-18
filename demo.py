@@ -44,33 +44,36 @@ if __name__ == "__main__":
 	lam    = HawkesLam(mu, kernel, maximum=1e+3)
 
 	# print(da.normalize(data)[0])
-	print(mu)
-	print(beta)
+	print("mu", mu)
+	print("beta", beta)
 
-	utils.spatial_intensity_on_map(
-		"results/ambulance_intensity_map.html", da, lam, data, seq_ind=0, t=3., 
-		# # crime range
-		# xlim=[33.70, 33.87],
-		# ylim=[-84.50, -84.30],
-		# # earthquake range
-		# xlim=[25.692, 49.687],
-		# ylim=[-129.851, -111.094],
-		# ambulance range
-		xlim=[-23.226, -22.621],
-		ylim=[-43.868, -43.050],
-		ngrid=200)
-		# xlim=da.xlim, ylim=da.ylim, ngrid=200)
+	# utils.spatial_intensity_on_map(
+	# 	"results/ambulance_intensity_map-2.81.html", da, lam, data, seq_ind=0, t=2.81, 
+	# 	# # crime range
+	# 	# xlim=[33.70, 33.87],
+	# 	# ylim=[-84.50, -84.30],
+	# 	# # earthquake range
+	# 	# xlim=[25.692, 49.687],
+	# 	# ylim=[-129.851, -111.094],
+	# 	# ambulance range
+	# 	xlim=[-23.226, -22.621],
+	# 	ylim=[-43.868, -43.050],
+	# 	ngrid=200)
+	# 	# xlim=da.xlim, ylim=da.ylim, ngrid=200)
 
-	# for t in np.arange(5, 10, .1):
-	# 	# ngrid should be smaller than 100, due to the computational 
-	# 	# time is too large when n > 100.
-	# 	utils.spatial_intensity_on_map(
-	# 		"results/intensity_map_at_%f.html" % t, da, lam, data, seq_ind=0, t=t, 
-	# 		# crime range
-	# 		# xlim=[33.70, 33.87],
-	# 		# ylim=[-84.50, -84.30],
-	# 		# # earthquake range
-	# 		xlim=[25.692, 49.687],
-	# 		ylim=[-129.851, -111.094],
-	# 		ngrid=200)
-	# 		# xlim=da.xlim, ylim=da.ylim, ngrid=200)
+	for t in np.arange(3.0, 4.0, .01):
+		# ngrid should be smaller than 100, due to the computational 
+		# time is too large when n > 100.
+		utils.spatial_intensity_on_map(
+			"results/intensity_map_at_%f.html" % t, da, lam, data, seq_ind=0, t=t, 
+			# crime range
+			# xlim=[33.70, 33.87],
+			# ylim=[-84.50, -84.30],
+			# # earthquake range
+			# xlim=[25.692, 49.687],
+			# ylim=[-129.851, -111.094],
+			# ambulance range
+			xlim=[-23.226, -22.621],
+			ylim=[-43.868, -43.050],
+			ngrid=200)
+			# xlim=da.xlim, ylim=da.ylim, ngrid=200)

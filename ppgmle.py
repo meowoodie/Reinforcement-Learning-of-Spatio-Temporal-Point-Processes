@@ -117,7 +117,7 @@ if __name__ == "__main__":
     T    = [0., 10.]
     data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
     data = data[:320, 1:51, :] # remove the first element in each seqs, since t = 0
-    da   = utils.DataAdapter(init_data=data, S, T)
+    da   = utils.DataAdapter(init_data=data, S=S, T=T)
     # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
     # da   = utils.DataAdapter(init_data=data)
     seqs = da.normalize(data)
