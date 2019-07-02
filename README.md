@@ -9,7 +9,7 @@ Usage
 ---
 In this repository, there are two kinds of spatio-temporal point process trainer: *MLE_Hawkes_Generator* defined in `ppgmle.py` and *RL_Hawkes_Generator* defined in `ppgrl.py`, which are using two different learning frameworks, respectively. 
 
-Please see the below example for how to construct and train a point process trainer. 
+###### Construct and train a point process trainer
 ```Python
 # load your dataset (n_sample, seq_len, 3)
 data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
@@ -41,6 +41,33 @@ with tf.Session() as sess:
         path="../Spatio-Temporal-Point-Process-Simulator/data/rescale_ambulance_mle_gaussian_mixture_params.npz")
 ```
 
+###### Generate points from a well-trained point process generator
+
+First you have to construct a `stppg` defined in `stppg.py` by loading the well-trained parameters.
+
+```Python
+params = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale_ambulance_mle_gaussian_mixture_params.npz')
+mu     = params['mu']
+beta   = params['beta']
+kernel = GaussianMixtureDiffusionKernel(
+    n_comp=5, layers=[5], C=1., beta=beta, 
+    SIGMA_SHIFT=.05, SIGMA_SCALE=.2, MU_SCALE=.01,
+    Wss=params['Wss'], bss=params['bss'], Wphis=params['Wphis'])
+lam    = HawkesLam(mu, kernel, maximum=1e+3)
+pp     = SpatialTemporalPointProcess(lam)
+```
+
+Then generate points and visualize the intensity function as an animation.
+```Python
+# generate points
+points, sizes = pp.generate(
+    T=[0., 10.], S=[[-1., 1.], [-1., 1.]], 
+    batch_size=500, verbose=True)
+
+# plot intensity of the process over the time
+plot_spatial_intensity(lam, points[0], S=[[0., 10.], [-1., 1.], [-1., 1.]],
+    t_slots=1000, grid_size=50, interval=50)
+```
 
 Experimental Learning Results
 ---
