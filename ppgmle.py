@@ -47,14 +47,6 @@ class MLE_Hawkes_Generator(object):
         loglikli = 0.
         for b in range(batch_size):
             seq       = self.input_seqs[b, :, :]
-            # mask_t    = tf.cast(seq[:, 0] > 0, tf.float32)
-            # trunc_seq = tf.boolean_mask(seq, mask_t)
-            # seq_len   = tf.shape(trunc_seq)[0]
-            # # calculate the log conditional pdf for each of data points in the sequence.
-            # loglikli += tf.reduce_sum(tf.scan(
-            #     lambda a, i: self.hawkes.log_conditional_pdf(trunc_seq[:i, :], keep_latest_k=keep_latest_k),
-            #     tf.range(1, seq_len+1), # from the first point to the last point
-            #     initializer=np.array(0., dtype=np.float32)))
             loglikli += self.hawkes.log_likelihood(seq)
         return loglikli
 
