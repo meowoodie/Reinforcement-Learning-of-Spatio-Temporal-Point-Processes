@@ -35,8 +35,8 @@ class SpatialTemporalHawkes(object):
         """
         # constant hyper parameters
         self.INIT_PARAM  = .01
-        self.SIGMA_SHIFT = .05
-        self.SIGMA_SCALE = .2
+        self.SIGMA_SHIFT = .1
+        self.SIGMA_SCALE = .5
         self.MU_SCALE    = .01
         # configurations
         self.C       = C       # constant

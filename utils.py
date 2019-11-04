@@ -41,6 +41,91 @@ def l2_norm(x, y):
 
 
 
+def plot_spatial_kernel(path, kernel, S, grid_size,
+        sigma_x_clim=None, sigma_y_clim=None, rho_clim=None):
+    """
+    Plot spatial kernel parameters over the spatial region, including 
+    sigma_x, sigma_x, and rho. 
+    """
+    assert len(S) == 2, '%d is an invalid dimension of the space.' % len(S)
+    # define the span for space region
+    x_span = np.linspace(S[0][0], S[0][1], grid_size+1)[:-1]
+    y_span = np.linspace(S[1][0], S[1][1], grid_size+1)[:-1]
+    # map initialization
+    sigma_x_map = np.zeros((grid_size, grid_size))
+    sigma_y_map = np.zeros((grid_size, grid_size))
+    rho_map     = np.zeros((grid_size, grid_size))
+    # grid entris calculation
+    s = np.array([ [x_span[x_idx], y_span[y_idx]] 
+        for x_idx in range(grid_size) for y_idx in range(grid_size) ])
+    mu_xs, mu_ys, sigma_xs, sigma_ys, rhos = kernel.nonlinear_mapping(s)
+    # mu_xs, mu_ys, sigma_xs, sigma_ys, rhos = \
+    #     kernel.mu_x(s[:,0], s[:,1]),\
+    #     kernel.mu_y(s[:,0], s[:,1]),\
+    #     kernel.sigma_x(s[:,0], s[:,1]),\
+    #     kernel.sigma_y(s[:,0], s[:,1]),\
+    #     kernel.rho(s[:,0], s[:,1])
+    indices = [ [x_idx, y_idx] 
+        for x_idx in range(grid_size) for y_idx in range(grid_size) ]
+    for i in range(len(indices)):
+        sigma_x_map[indices[i][0]][indices[i][1]] = sigma_xs[i]
+        sigma_y_map[indices[i][0]][indices[i][1]] = sigma_ys[i]
+        rho_map[indices[i][0]][indices[i][1]]     = rhos[i]
+    # plotting
+    plt.rc('text', usetex=True)
+    plt.rc("font", family="serif")
+    # plot as a pdf file
+    with PdfPages(path) as pdf:
+        fig, axs = plt.subplots(1, 3)
+        cmap     = matplotlib.cm.get_cmap('viridis')
+        im_0     = axs[0].imshow(sigma_x_map, interpolation='nearest', origin='lower', cmap=cmap)
+        im_1     = axs[1].imshow(sigma_y_map, interpolation='nearest', origin='lower', cmap=cmap)
+        im_2     = axs[2].imshow(rho_map, interpolation='nearest', origin='lower', cmap=cmap)
+        sigma_x_clim = [sigma_x_map.min(), sigma_x_map.max()] if sigma_x_clim is None else sigma_x_clim
+        sigma_y_clim = [sigma_y_map.min(), sigma_y_map.max()] if sigma_y_clim is None else sigma_y_clim
+        rho_clim     = [rho_map.min(), rho_map.max()] if rho_clim is None else rho_clim
+        print(sigma_x_map.min(), sigma_x_map.max())
+        print(sigma_y_map.min(), sigma_y_map.max())
+        print(rho_map.min(), rho_map.max())
+        # ticks for colorbars
+        im_0.set_clim(*sigma_x_clim)
+        im_1.set_clim(*sigma_y_clim)
+        im_2.set_clim(*rho_clim)
+        tick_0 = np.linspace(sigma_x_clim[0], sigma_x_clim[1], 5).tolist()
+        tick_1 = np.linspace(sigma_y_clim[0], sigma_y_clim[1], 5).tolist()
+        tick_2 = np.linspace(rho_clim[0], rho_clim[1], 5).tolist()
+        # set x, y labels for subplots
+        axs[0].set_xlabel(r'$x$')
+        axs[1].set_xlabel(r'$x$')
+        axs[2].set_xlabel(r'$x$')
+        axs[0].set_ylabel(r'$y$')
+        axs[1].set_ylabel(r'$y$')
+        axs[2].set_ylabel(r'$y$')
+        # remove x, y ticks
+        axs[0].get_xaxis().set_ticks([])
+        axs[1].get_xaxis().set_ticks([])
+        axs[2].get_xaxis().set_ticks([])
+        axs[0].get_yaxis().set_ticks([])
+        axs[1].get_yaxis().set_ticks([])
+        axs[2].get_yaxis().set_ticks([])
+        # set subtitle for subplots
+        axs[0].set_title(r'$\sigma_x$')
+        axs[1].set_title(r'$\sigma_y$')
+        axs[2].set_title(r'$\rho$')
+        # plot colorbar
+        cbar_0 = fig.colorbar(im_0, ax=axs[0], ticks=tick_0, fraction=0.046, pad=0.08, orientation="horizontal")
+        cbar_1 = fig.colorbar(im_1, ax=axs[1], ticks=tick_1, fraction=0.046, pad=0.08, orientation="horizontal")
+        cbar_2 = fig.colorbar(im_2, ax=axs[2], ticks=tick_2, fraction=0.046, pad=0.08, orientation="horizontal")
+        # set font size of the ticks of the colorbars
+        cbar_0.ax.tick_params(labelsize=5) 
+        cbar_1.ax.tick_params(labelsize=5) 
+        cbar_2.ax.tick_params(labelsize=5) 
+        # adjust the width of the gap between subplots
+        plt.subplots_adjust(wspace=0.2)
+        pdf.savefig(fig)
+
+
+
 def spatial_intensity_on_map(
     path,    # html saving path
     da,      # data adapter object defined in utils.py

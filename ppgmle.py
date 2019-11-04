@@ -107,21 +107,23 @@ if __name__ == "__main__":
     # Unittest example
     S    = [[-1., 1.], [-1., 1.]]
     T    = [0., 10.]
-    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
-    data = data[:320, 1:51, :] # remove the first element in each seqs, since t = 0
-    da   = utils.DataAdapter(init_data=data, S=S, T=T)
-    # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
-    # da   = utils.DataAdapter(init_data=data)
-    seqs = da.normalize(data)
-    print(da)
+    # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
+    # data = data[:320, 1:51, :] # remove the first element in each seqs, since t = 0
+    # da   = utils.DataAdapter(init_data=data, S=S, T=T)
+    # # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
+    # # da   = utils.DataAdapter(init_data=data)
+    # seqs = da.normalize(data)
+    # print(da)
+    # print(seqs.shape)
+    seqs = np.load("../Spatio-Temporal-Point-Process-Simulator/results/spatial-variant-gaussian.npy") 
     print(seqs.shape)
 
     # training model
     with tf.Session() as sess:
-        batch_size = 32
-        epoches    = 10
-        layers     = [5]
-        n_comp     = 5
+        batch_size = 50
+        epoches    = 5
+        layers     = [5, 5]
+        n_comp     = 1
 
         ppg = MLE_Hawkes_Generator(
             T=T, S=S, layers=layers, n_comp=n_comp,
@@ -129,7 +131,7 @@ if __name__ == "__main__":
             keep_latest_k=None, lr=1e-1, reg_scale=0.)
         ppg.train(sess, epoches, seqs)
         ppg.hawkes.save_params_npy(sess, 
-            path="../Spatio-Temporal-Point-Process-Simulator/data/rescale_ambulance_mle_gaussian_mixture_params.npz")
+            path="../Spatio-Temporal-Point-Process-Simulator/data/simulation-1-gcomp.npz")
 
         # generate samples and test mmd metric
         # test_size = 20
