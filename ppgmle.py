@@ -115,14 +115,14 @@ if __name__ == "__main__":
     # seqs = da.normalize(data)
     # print(da)
     # print(seqs.shape)
-    seqs = np.load("../Spatio-Temporal-Point-Process-Simulator/results/spatial-variant-gaussian.npy") 
+    seqs = np.load("../Spatio-Temporal-Point-Process-Simulator/results/spatial-variant-gaussian-b.npy") 
     print(seqs.shape)
 
     # training model
     with tf.Session() as sess:
-        batch_size = 50
-        epoches    = 5
-        layers     = [5, 5]
+        batch_size = 100
+        epoches    = 8
+        layers     = [10]
         n_comp     = 1
 
         ppg = MLE_Hawkes_Generator(
@@ -131,7 +131,7 @@ if __name__ == "__main__":
             keep_latest_k=None, lr=1e-1, reg_scale=0.)
         ppg.train(sess, epoches, seqs)
         ppg.hawkes.save_params_npy(sess, 
-            path="../Spatio-Temporal-Point-Process-Simulator/data/simulation-1-gcomp.npz")
+            path="../Spatio-Temporal-Point-Process-Simulator/data/simulation-1-gcomp-b.npz")
 
         # generate samples and test mmd metric
         # test_size = 20

@@ -28,12 +28,12 @@ if __name__ == "__main__":
 	# params = np.load('../Spatio-Temporal-Point-Process-Simulator/data/earthquake_mle_gaussian_mixture_params.npz')
 	# da     = utils.DataAdapter(init_data=data)
 
-	data   = np.load('../Spatio-Temporal-Point-Process-Simulator/results/spatial-variant-gaussian.npy')
-	params = np.load('../Spatio-Temporal-Point-Process-Simulator/data/simulation-1-gcomp.npz')
+	data   = np.load('../Spatio-Temporal-Point-Process-Simulator/results/spatial-variant-gaussian-b.npy')
+	params = np.load('../Spatio-Temporal-Point-Process-Simulator/data/simulation-1-gcomp-b.npz')
 	mu     = params['mu']
 	beta   = params['beta']
 	kernel = GaussianMixtureDiffusionKernel(
-		n_comp=1, layers=[5, 5], C=1., beta=beta, 
+		n_comp=1, layers=[10], C=1., beta=beta, 
 		SIGMA_SHIFT=.1, SIGMA_SCALE=.5, MU_SCALE=.01,
 		Wss=params['Wss'], bss=params['bss'], Wphis=params['Wphis'])
 	lam    = HawkesLam(mu, kernel, maximum=1e+3)
@@ -42,7 +42,7 @@ if __name__ == "__main__":
 	print("beta", beta)
 
 	# plot kernel parameters over the spatial region.
-	utils.plot_spatial_kernel("results/learned-kernel-svgau.pdf", kernel.gdks[0], S=[[-1., 1.], [-1., 1.]], grid_size=50)
+	utils.plot_spatial_kernel("results/learned-kernel-svgau-b.pdf", kernel.gdks[0], S=[[-1., 1.], [-1., 1.]], grid_size=50)
 
 	# utils.spatial_intensity_on_map(
 	# 	"results/ambulance_intensity_map-2.81.html", da, lam, data, seq_ind=0, t=2.81, 
