@@ -182,7 +182,7 @@ def spatial_intensity_on_map(
     # _map   = folium.Map(location=[sum(xlim)/2., sum(ylim)/2.], zoom_start=6, zoom_control=True, tiles='Stamen Terrain')
     # plot polygons on the map
     print(min(lam_dict.values()), max(lam_dict.values()))
-    lam_cm = branca.colormap.linear.YlOrRd_09.scale(np.log(5), np.log(5000)) # scale(10, 5000) # colorbar for intensity values
+    lam_cm = branca.colormap.linear.YlOrRd_09.scale(min(lam_dict.values()), max(lam_dict.values())) # scale(10, 5000) # colorbar for intensity values
     poi_cm = branca.colormap.linear.PuBu_09.scale(min(sub_seq_t), max(sub_seq_t)) # colorbar for lasting time of points
     folium.GeoJson(
         data = geo_df.to_json(),

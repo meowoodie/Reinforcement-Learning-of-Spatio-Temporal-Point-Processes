@@ -104,34 +104,45 @@ class MLE_Hawkes_Generator(object):
             
 
 if __name__ == "__main__":
-    # Unittest example
+    # # SIMULATION
+    # S    = [[-1., 1.], [-1., 1.]]
+    # T    = [0., 10.]
+    # seqs = np.load("data/simulated/spatial-variant-gaussian-b.npy") 
+    # print(seqs.shape)
+    # with tf.Session() as sess:
+    #     batch_size = 100
+    #     epoches    = 8
+    #     layers     = [10]
+    #     n_comp     = 1
+    #     ppg = MLE_Hawkes_Generator(
+    #         T=T, S=S, layers=layers, n_comp=n_comp,
+    #         batch_size=batch_size, data_dim=3, 
+    #         keep_latest_k=None, lr=1e-1, reg_scale=0.)
+    #     ppg.train(sess, epoches, seqs)
+    #     ppg.hawkes.save_params_npy(sess, 
+    #         path="results/simulation-1-gcomp-b.npz")
+
+    # REAL
     S    = [[-1., 1.], [-1., 1.]]
     T    = [0., 10.]
-    # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
-    # data = data[:320, 1:51, :] # remove the first element in each seqs, since t = 0
-    # da   = utils.DataAdapter(init_data=data, S=S, T=T)
-    # # data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.perseason.npy')
-    # # da   = utils.DataAdapter(init_data=data)
-    # seqs = da.normalize(data)
-    # print(da)
-    # print(seqs.shape)
-    seqs = np.load("../Spatio-Temporal-Point-Process-Simulator/results/spatial-variant-gaussian-b.npy") 
+    data = np.load('data/real/SCEDC-1999-2019-24hrs.npy')
+    data = data[:, 1:, :3] # remove the first element in each seqs, since t = 0
+    da   = utils.DataAdapter(init_data=data, S=S, T=T)
+    seqs = da.normalize(data)
+    print(da)
     print(seqs.shape)
-
-    # training model
     with tf.Session() as sess:
         batch_size = 100
         epoches    = 8
         layers     = [10]
         n_comp     = 1
-
         ppg = MLE_Hawkes_Generator(
             T=T, S=S, layers=layers, n_comp=n_comp,
             batch_size=batch_size, data_dim=3, 
             keep_latest_k=None, lr=1e-1, reg_scale=0.)
         ppg.train(sess, epoches, seqs)
         ppg.hawkes.save_params_npy(sess, 
-            path="../Spatio-Temporal-Point-Process-Simulator/data/simulation-1-gcomp-b.npz")
+            path="results/real-24hrs-1-gcomp.npz")
 
         # generate samples and test mmd metric
         # test_size = 20
