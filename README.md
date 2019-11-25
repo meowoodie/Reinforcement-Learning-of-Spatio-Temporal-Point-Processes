@@ -69,7 +69,15 @@ plot_spatial_intensity(lam, points[0], S=[[0., 10.], [-1., 1.], [-1., 1.]],
     t_slots=1000, grid_size=50, interval=50)
 ```
 
-Experimental Learning Results
+Simulation Results
+---
+
+ | Linear spatial pattern | Nonlinear spatial pattern
+:----------------------------:|:----------------------------:|:----------------------------:
+Simulated parameters | ![](https://github.com/meowoodie/Imitation-Learning-for-Point-Process/blob/master/results/kernel-svgau-a.png) | ![](https://github.com/meowoodie/Imitation-Learning-for-Point-Process/blob/master/results/kernel-svgau-b.png)
+Learned parameters | ![](https://github.com/meowoodie/Imitation-Learning-for-Point-Process/blob/master/results/learned-kernel-svgau-a.png) | ![](https://github.com/meowoodie/Imitation-Learning-for-Point-Process/blob/master/results/learned-kernel-svgau-b.png)
+
+Numerical Results
 ---
 
 We test our approach on two real datasets that contains complex spatial dependency. Such dependency is highly related to geographic features:

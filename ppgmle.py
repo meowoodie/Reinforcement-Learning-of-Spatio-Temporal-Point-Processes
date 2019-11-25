@@ -133,13 +133,13 @@ if __name__ == "__main__":
     print(seqs.shape)
     with tf.Session() as sess:
         batch_size = 100
-        epoches    = 8
+        epoches    = 10
         layers     = [10]
         n_comp     = 1
         ppg = MLE_Hawkes_Generator(
             T=T, S=S, layers=layers, n_comp=n_comp,
             batch_size=batch_size, data_dim=3, 
-            keep_latest_k=None, lr=1e-1, reg_scale=0.)
+            keep_latest_k=None, lr=1e-3, reg_scale=0.)
         ppg.train(sess, epoches, seqs)
         ppg.hawkes.save_params_npy(sess, 
             path="results/real-24hrs-1-gcomp.npz")

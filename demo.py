@@ -13,7 +13,7 @@ import numpy as np
 import tensorflow as tf
 
 from ppgrl import RL_Hawkes_Generator
-from stppg import HawkesLam, GaussianMixtureDiffusionKernel, StdDiffusionKernel
+from stppg import HawkesLam, GaussianMixtureDiffusionKernel, StdDiffusionKernel, SpatialTemporalPointProcess
 
 # Avoid error msg [OMP: Error #15: Initializing libiomp5.dylib, but found libiomp5.dylib already initialized.]
 # Reference: https://github.com/dmlc/xgboost/issues/1715
@@ -58,9 +58,36 @@ def exp_real_with_1_comp():
 		# ngrid=200)
 		xlim=da.xlim, ylim=da.ylim, ngrid=200)
 
+def exp_real_with_2_comp():
+	# REAL
+	data   = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale.ambulance.perday.npy')
+	data   = data[:, 1:, :3]
+	params = np.load('../Spatio-Temporal-Point-Process-Simulator/data/rescale_ambulance_mle_gaussian_mixture_params.npz')
+	da     = utils.DataAdapter(init_data=data)
+	mu     = .1 # params['mu']
+	beta   = params['beta']
+	kernel = GaussianMixtureDiffusionKernel(
+		n_comp=1, layers=[5], C=1., beta=beta, 
+		SIGMA_SHIFT=.1, SIGMA_SCALE=.5, MU_SCALE=.01,
+		Wss=params['Wss'], bss=params['bss'], Wphis=params['Wphis'])
+	lam    = HawkesLam(mu, kernel, maximum=1e+3)
+	print("mu", mu)
+	print("beta", beta)
+	print(params['Wphis'].shape)
+	pp     = SpatialTemporalPointProcess(lam)
+    # generate points
+	points, sizes = pp.generate(
+		T=[0., 10.], S=[[-1., 1.], [-1., 1.]], 
+		batch_size=100, verbose=True)
+	results = da.restore(points)
+	print(results)
+	print(sizes)
+	np.save('results/ambulance-simulation.npy', results)
+
+
 if __name__ == "__main__":
 
-	exp_real_with_1_comp()
+	exp_real_with_2_comp()
 
 	# for t in np.arange(3.0, 4.0, .01):
 	# 	# ngrid should be smaller than 100, due to the computational 

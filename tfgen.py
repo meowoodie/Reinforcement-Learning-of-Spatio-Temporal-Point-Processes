@@ -45,7 +45,7 @@ class SpatialTemporalHawkes(object):
         self.maximum = maximum # upper bound of conditional intensity
         self.verbose = verbose
         # model parameters
-        self.mu      = tf.constant(1.) # tf.get_variable(name="mu", initializer=tf.constant(0.1), dtype=tf.float32)    
+        self.mu      = tf.constant(10.) # tf.get_variable(name="mu", initializer=tf.constant(0.1), dtype=tf.float32)    
         self.beta    = tf.constant(1.) # tf.get_variable(name="beta", initializer=tf.constant(1.), dtype=tf.float32) 
         self.Wss     = []
         self.bss     = []
