@@ -72,10 +72,10 @@ plot_spatial_intensity(lam, points[0], S=[[0., 10.], [-1., 1.], [-1., 1.]],
 Simulation Results
 ---
 
- | Linear spatial pattern | Nonlinear spatial pattern
+                              |   Linear spatial pattern     |   Nonlinear spatial pattern
 :----------------------------:|:----------------------------:|:----------------------------:
-Simulated parameters | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/kernel-svgau-a.png) | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/kernel-svgau-b.png)
-Learned parameters | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/learned-kernel-svgau-a.png) | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/learned-kernel-svgau-b.png)
+Simulated parameters          | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/kernel-svgau-a.png) | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/kernel-svgau-b.png)
+Learned parameters            | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/learned-kernel-svgau-a.png) | ![](https://github.com/meowoodie/Reinforcement-Learning-of-Spatio-Temporal-Point-Processes/blob/master/imgs/learned-kernel-svgau-b.png)
 
 Numerical Results
 ---
