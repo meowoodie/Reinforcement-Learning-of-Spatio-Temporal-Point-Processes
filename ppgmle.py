@@ -104,6 +104,9 @@ class MLE_Hawkes_Generator(object):
             
 
 if __name__ == "__main__":
+    np.random.seed(0)
+    tf.set_random_seed(0)
+
     # # SIMULATION
     # S    = [[-1., 1.], [-1., 1.]]
     # T    = [0., 10.]
@@ -125,24 +128,25 @@ if __name__ == "__main__":
     # REAL
     S    = [[-1., 1.], [-1., 1.]]
     T    = [0., 10.]
-    data = np.load('data/real/SCEDC-1999-2019-24hrs.npy')
-    data = data[:, 1:, :3] # remove the first element in each seqs, since t = 0
+    data = np.load('../Spatio-Temporal-Point-Process-Simulator/data/northcal.earthquake.permonth.npy')
+    data = data[:200, 1:50, :3] # remove the first element in each seqs, since t = 0
     da   = utils.DataAdapter(init_data=data, S=S, T=T)
     seqs = da.normalize(data)
     print(da)
     print(seqs.shape)
+    print(seqs)
     with tf.Session() as sess:
-        batch_size = 100
+        batch_size = 20
         epoches    = 10
-        layers     = [10]
-        n_comp     = 1
+        layers     = [20, 20]
+        n_comp     = 5
         ppg = MLE_Hawkes_Generator(
             T=T, S=S, layers=layers, n_comp=n_comp,
             batch_size=batch_size, data_dim=3, 
-            keep_latest_k=None, lr=1e-3, reg_scale=0.)
+            keep_latest_k=None, lr=1e-2, reg_scale=0.)
         ppg.train(sess, epoches, seqs)
         ppg.hawkes.save_params_npy(sess, 
-            path="results/real-24hrs-1-gcomp.npz")
+            path="results/real-northcal-earthquake-permonth-k5.npz")
 
         # generate samples and test mmd metric
         # test_size = 20

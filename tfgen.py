@@ -35,9 +35,13 @@ class SpatialTemporalHawkes(object):
         """
         # constant hyper parameters
         self.INIT_PARAM  = .01
+        # self.SIGMA_SHIFT = .1
+        # self.SIGMA_SCALE = .5
+        # self.MU_SCALE    = .01
+        self.MU_SCALE    = .15
         self.SIGMA_SHIFT = .1
-        self.SIGMA_SCALE = .5
-        self.MU_SCALE    = .01
+        self.SIGMA_SCALE = .3
+        self.RHO_SCALE   = .2
         # configurations
         self.C       = C       # constant
         self.T       = T       # time space
@@ -107,7 +111,7 @@ class SpatialTemporalHawkes(object):
         mu_y    = (output[:, 1] - 0.5) * 2 * self.MU_SCALE           # [n_his]: mu_y spans (-MU_SCALE, MU_SCALE)
         sigma_x = output[:, 2] * self.SIGMA_SCALE + self.SIGMA_SHIFT # [n_his]: sigma_x spans (SIGMA_SHIFT, SIGMA_SHIFT + SIGMA_SCALE)
         sigma_y = output[:, 3] * self.SIGMA_SCALE + self.SIGMA_SHIFT # [n_his]: sigma_y spans (SIGMA_SHIFT, SIGMA_SHIFT + SIGMA_SCALE)
-        rho     = output[:, 4] * 1.5 - .75                           # [n_his]: rho spans (-.75, .75)
+        rho     = (output[:, 4] - 0.5) * 2 * self.RHO_SCALE          # [n_his]: rho spans (-RHO_SCALE, RHO_SCALE)
         return mu_x, mu_y, sigma_x, sigma_y, rho
 
     def _gaussian_kernel(self, k, t, s, his_t, his_s):

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+import sys
+import arrow
 import branca
 import folium
 import geopandas
@@ -10,6 +13,7 @@ import tensorflow as tf
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from tqdm import tqdm
 from matplotlib import animation
 from matplotlib.backends.backend_pdf import PdfPages
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -75,55 +79,159 @@ def plot_spatial_kernel(path, kernel, S, grid_size,
     plt.rc('text', usetex=True)
     plt.rc("font", family="serif")
     # plot as a pdf file
-    with PdfPages(path) as pdf:
-        fig, axs = plt.subplots(1, 3)
-        cmap     = matplotlib.cm.get_cmap('viridis')
-        im_0     = axs[0].imshow(sigma_x_map, interpolation='nearest', origin='lower', cmap=cmap)
-        im_1     = axs[1].imshow(sigma_y_map, interpolation='nearest', origin='lower', cmap=cmap)
-        im_2     = axs[2].imshow(rho_map, interpolation='nearest', origin='lower', cmap=cmap)
-        sigma_x_clim = [sigma_x_map.min(), sigma_x_map.max()] if sigma_x_clim is None else sigma_x_clim
-        sigma_y_clim = [sigma_y_map.min(), sigma_y_map.max()] if sigma_y_clim is None else sigma_y_clim
-        rho_clim     = [rho_map.min(), rho_map.max()] if rho_clim is None else rho_clim
-        print(sigma_x_map.min(), sigma_x_map.max())
-        print(sigma_y_map.min(), sigma_y_map.max())
-        print(rho_map.min(), rho_map.max())
-        # ticks for colorbars
-        im_0.set_clim(*sigma_x_clim)
-        im_1.set_clim(*sigma_y_clim)
-        im_2.set_clim(*rho_clim)
-        tick_0 = np.linspace(sigma_x_clim[0], sigma_x_clim[1], 5).tolist()
-        tick_1 = np.linspace(sigma_y_clim[0], sigma_y_clim[1], 5).tolist()
-        tick_2 = np.linspace(rho_clim[0], rho_clim[1], 5).tolist()
-        # set x, y labels for subplots
-        axs[0].set_xlabel(r'$x$')
-        axs[1].set_xlabel(r'$x$')
-        axs[2].set_xlabel(r'$x$')
-        axs[0].set_ylabel(r'$y$')
-        axs[1].set_ylabel(r'$y$')
-        axs[2].set_ylabel(r'$y$')
-        # remove x, y ticks
-        axs[0].get_xaxis().set_ticks([])
-        axs[1].get_xaxis().set_ticks([])
-        axs[2].get_xaxis().set_ticks([])
-        axs[0].get_yaxis().set_ticks([])
-        axs[1].get_yaxis().set_ticks([])
-        axs[2].get_yaxis().set_ticks([])
-        # set subtitle for subplots
-        axs[0].set_title(r'$\sigma_x$')
-        axs[1].set_title(r'$\sigma_y$')
-        axs[2].set_title(r'$\rho$')
-        # plot colorbar
-        cbar_0 = fig.colorbar(im_0, ax=axs[0], ticks=tick_0, fraction=0.046, pad=0.08, orientation="horizontal")
-        cbar_1 = fig.colorbar(im_1, ax=axs[1], ticks=tick_1, fraction=0.046, pad=0.08, orientation="horizontal")
-        cbar_2 = fig.colorbar(im_2, ax=axs[2], ticks=tick_2, fraction=0.046, pad=0.08, orientation="horizontal")
-        # set font size of the ticks of the colorbars
-        cbar_0.ax.tick_params(labelsize=5) 
-        cbar_1.ax.tick_params(labelsize=5) 
-        cbar_2.ax.tick_params(labelsize=5) 
-        # adjust the width of the gap between subplots
-        plt.subplots_adjust(wspace=0.2)
-        pdf.savefig(fig)
+    # with PdfPages(path) as pdf:
+    fig, axs = plt.subplots(1, 3)
+    cmap     = matplotlib.cm.get_cmap('viridis')
+    im_0     = axs[0].imshow(sigma_x_map, interpolation='nearest', origin='lower', cmap=cmap)
+    im_1     = axs[1].imshow(sigma_y_map, interpolation='nearest', origin='lower', cmap=cmap)
+    im_2     = axs[2].imshow(rho_map, interpolation='nearest', origin='lower', cmap=cmap)
+    sigma_x_clim = [sigma_x_map.min(), sigma_x_map.max()] if sigma_x_clim is None else sigma_x_clim
+    sigma_y_clim = [sigma_y_map.min(), sigma_y_map.max()] if sigma_y_clim is None else sigma_y_clim
+    rho_clim     = [rho_map.min(), rho_map.max()] if rho_clim is None else rho_clim
+    print(sigma_x_map.min(), sigma_x_map.max())
+    print(sigma_y_map.min(), sigma_y_map.max())
+    print(rho_map.min(), rho_map.max())
+    # ticks for colorbars
+    im_0.set_clim(*sigma_x_clim)
+    im_1.set_clim(*sigma_y_clim)
+    im_2.set_clim(*rho_clim)
+    tick_0 = np.linspace(sigma_x_clim[0], sigma_x_clim[1], 5).tolist()
+    tick_1 = np.linspace(sigma_y_clim[0], sigma_y_clim[1], 5).tolist()
+    tick_2 = np.linspace(rho_clim[0], rho_clim[1], 5).tolist()
+    # set x, y labels for subplots
+    axs[0].set_xlabel(r'$x$', fontsize=10)
+    axs[1].set_xlabel(r'$x$', fontsize=10)
+    axs[2].set_xlabel(r'$x$', fontsize=10)
+    axs[0].set_ylabel(r'$y$', fontsize=10)
+    axs[1].set_ylabel(r'$y$', fontsize=10)
+    axs[2].set_ylabel(r'$y$', fontsize=10)
+    # remove x, y ticks
+    axs[0].get_xaxis().set_ticks([])
+    axs[1].get_xaxis().set_ticks([])
+    axs[2].get_xaxis().set_ticks([])
+    axs[0].get_yaxis().set_ticks([])
+    axs[1].get_yaxis().set_ticks([])
+    axs[2].get_yaxis().set_ticks([])
+    # set subtitle for subplots
+    axs[0].set_title(r'$\sigma_x$', fontsize=12)
+    axs[1].set_title(r'$\sigma_y$', fontsize=12)
+    axs[2].set_title(r'$\rho$', fontsize=12)
+    # plot colorbar
+    cbar_0 = fig.colorbar(im_0, ax=axs[0], ticks=tick_0, fraction=0.046, pad=0.08, orientation="horizontal")
+    cbar_1 = fig.colorbar(im_1, ax=axs[1], ticks=tick_1, fraction=0.046, pad=0.08, orientation="horizontal")
+    cbar_2 = fig.colorbar(im_2, ax=axs[2], ticks=tick_2, fraction=0.046, pad=0.08, orientation="horizontal")
+    # set font size of the ticks of the colorbars
+    cbar_0.ax.tick_params(labelsize=5) 
+    cbar_1.ax.tick_params(labelsize=5) 
+    cbar_2.ax.tick_params(labelsize=5) 
+    # adjust the width of the gap between subplots
+    plt.subplots_adjust(wspace=0.2)
+    fig.tight_layout()
+    plt.savefig(path, bbox_extra_artists=[fig], bbox_inches='tight')
 
+
+
+def plot_spatial_intensity_animation(lam, points, S, t_slots, grid_size, interval):
+    """
+    Plot spatial intensity as the time goes by. The generated points can be also
+    plotted on the same 2D space optionally.
+    """
+    assert len(S) == 3, '%d is an invalid dimension of the space.' % len(S)
+    # remove zero points
+    points = points[points[:, 0] > 0]
+    # split points into sequence of time and space.
+    seq_t, seq_s = points[:, 0], points[:, 1:]
+    # define the span for each subspace
+    t_span = np.linspace(S[0][0], S[0][1], t_slots+1)[1:]
+    x_span = np.linspace(S[1][0], S[1][1], grid_size+1)[:-1]
+    y_span = np.linspace(S[2][0], S[2][1], grid_size+1)[:-1]
+    # function for yielding the heatmap over the entire region at a given time
+    def heatmap(t):
+        _map      = np.zeros((grid_size, grid_size))
+        sub_seq_t = seq_t[seq_t < t]
+        sub_seq_s = seq_s[:len(sub_seq_t)]
+        for x_idx in range(grid_size):
+            for y_idx in range(grid_size):
+                s                  = [x_span[x_idx], y_span[y_idx]]
+                _map[x_idx][y_idx] = lam.value(t, sub_seq_t, s, sub_seq_s)
+        return _map
+    # prepare the heatmap data in advance
+    print('[%s] preparing the dataset %d × (%d, %d) for plotting.' %
+        (arrow.now(), t_slots, grid_size, grid_size), file=sys.stderr)
+    data = np.array([ heatmap(t_span[i]) for i in tqdm(range(t_slots)) ])
+    print(data.sum(axis=-1).sum(axis=-1).argmax())
+
+    # initiate the figure and plot
+    fig = plt.figure()
+    # set the image with largest total intensity as the intial plot for automatically setting color range.
+    # im  = plt.imshow(data[data.sum(axis=-1).sum(axis=-1).argmax()], cmap='hot', animated=True) 
+    im  = plt.imshow(data[-1], cmap='hot', animated=True) 
+    # function for updating the image of each frame
+    def animate(i):
+        # print(t_span[i])
+        im.set_data(data[i])
+        return im,
+    # function for initiating the first image of the animation
+    def init():
+        im.set_data(data[0])
+        return im,
+    # animation
+    print('[%s] start animation.' % arrow.now(), file=sys.stderr)
+    anim = animation.FuncAnimation(fig, animate,
+        init_func=init, frames=t_slots, interval=interval, blit=True)
+    # show the plot
+    plt.show()
+    # # Set up formatting for the movie files
+    # Writer = animation.writers['ffmpeg']
+    # writer = Writer(fps=15, metadata=dict(artist='Woody'), bitrate=1800)
+    # anim.save('hpp.mp4', writer=writer)
+
+
+
+def plot_spatial_intensity_by_frame(lam, points, S, t_slots, grid_size, interval, filename):
+    """
+    Plot spatial intensity as the time goes by. The generated points can be also
+    plotted on the same 2D space optionally.
+    """
+    assert len(S) == 3, '%d is an invalid dimension of the space.' % len(S)
+    # remove zero points
+    points = points[points[:, 0] > 0]
+    # split points into sequence of time and space.
+    seq_t, seq_s = points[:, 0], points[:, 1:]
+    # define the span for each subspace
+    t_span = np.linspace(S[0][0], S[0][1], t_slots+1)[1:]
+    x_span = np.linspace(S[1][0], S[1][1], grid_size+1)[:-1]
+    y_span = np.linspace(S[2][0], S[2][1], grid_size+1)[:-1]
+    # function for yielding the heatmap over the entire region at a given time
+    def heatmap(t):
+        _map      = np.zeros((grid_size, grid_size))
+        sub_seq_t = seq_t[seq_t < t]
+        sub_seq_s = seq_s[:len(sub_seq_t)]
+        for x_idx in range(grid_size):
+            for y_idx in range(grid_size):
+                s                  = [x_span[x_idx], y_span[y_idx]]
+                _map[x_idx][y_idx] = lam.value(t, sub_seq_t, s, sub_seq_s)
+        return _map
+    # prepare the heatmap data in advance
+    print('[%s] preparing the dataset %d × (%d, %d) for plotting.' %
+        (arrow.now(), t_slots, grid_size, grid_size), file=sys.stderr)
+    data = np.array([ heatmap(t_span[i]) for i in tqdm(range(t_slots)) ])
+    print(data[-1].min(), data[-1].max())
+
+    for i in range(t_slots):
+        print(i)
+        fig  = plt.figure(figsize=(6, 6))
+        ax   = fig.add_subplot(111)
+        im   = ax.imshow(data[i], cmap='hot', vmin=.2, vmax=3.)
+        curt = (i / t_slots) * (S[0][1] - S[0][0]) + S[0][0]
+        hisp = points[points[:, 0] <= curt]
+        hisp = hisp[:, 1:]
+        hisp = (hisp - np.array([[S[1][0], S[2][0]]])) / 2 * grid_size
+        ax.scatter(hisp[:, 1], hisp[:, 0], s=100, c="#90ee90", alpha=0.6, marker="*")
+        plt.axis('off')
+        fig.tight_layout()
+        fig.savefig("results/%s-%d.pdf" % (filename, i))
+        plt.clf()
 
 
 def spatial_intensity_on_map(
